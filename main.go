@@ -28,7 +28,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	pb := NewPoetryBox()
 	for tweet := range tweets {
-		log.Printf("%20s: %s", tweet.User.ScreenName, tweet.Text)
+		if couplet, ok := pb.Feed(tweet); ok {
+			log.Printf(
+				"couplet found:\n%20s: %s\n%20s: %s\n",
+				couplet.First.User.ScreenName,
+				couplet.First.Text,
+				couplet.Second.User.ScreenName,
+				couplet.Second.Text,
+			)
+		}
 	}
 }

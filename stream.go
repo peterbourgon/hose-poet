@@ -70,6 +70,7 @@ func (s *Stream) Consume() (chan Tweet, error) {
 
 	tweets := make(chan Tweet)
 	go func() {
+		defer close(tweets)
 		defer response.Body.Close()
 		r := bufio.NewReader(response.Body)
 		for {

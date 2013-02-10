@@ -30,16 +30,14 @@ func main() {
 	}
 
 	rh := NewRhyme(*rhymeBin)
-	pb := NewPoetryBox(rh)
+	st := NewStore(rh)
 	for tweet := range tweets {
-		if couplet, ok := pb.Feed(&tweet); ok {
-			log.Printf(
-				"couplet found:\n%20s: %s\n%20s: %s\n",
-				couplet.First.User.ScreenName,
-				couplet.First.Text,
-				couplet.Second.User.ScreenName,
-				couplet.Second.Text,
-			)
+		if match, ok := st.Feed(tweet); ok {
+			log.Printf("\n\n")
+			for _, t := range match {
+				log.Printf("  • %20d %s: %s", t.ID, t.User.ScreenName, t.Text)
+			}
+			log.Printf("\n\n")
 		}
 	}
 }

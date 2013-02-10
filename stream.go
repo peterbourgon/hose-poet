@@ -69,6 +69,7 @@ func (s *Stream) Consume() (chan Tweet, error) {
 	}
 
 	tweets := make(chan Tweet)
+	newlineRemover := strings.NewReplacer("\r", "", "\n", "")
 	go func() {
 		defer close(tweets)
 		defer response.Body.Close()
@@ -88,6 +89,7 @@ func (s *Stream) Consume() (chan Tweet, error) {
 			if tweet.ID == 0 {
 				continue
 			}
+			tweet.Text = newlineRemover.Replace(tweet.Text)
 			tweets <- tweet
 		}
 	}()

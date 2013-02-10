@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -21,7 +20,7 @@ func NewRhyme(bin string) *Rhyme {
 	}
 }
 
-func (r *Rhyme) Classify(tweet *Tweet) (string, error) {
+func (r *Rhyme) Classify(tweet Tweet) (string, error) {
 	textSyllables, lastWord := 0, ""
 	for _, word := range Tokenize(tweet.Text) {
 		word := Clean(word)
@@ -45,29 +44,12 @@ func (r *Rhyme) Classify(tweet *Tweet) (string, error) {
 		return "", fmt.Errorf("unclassifiable")
 	}
 
-	return fmt.Sprintf("%d-%s", textSyllables, lastWord), nil
-}
-
-func (r *Rhyme) Match(c1, c2 string) bool {
-	toks1, toks2 := strings.Split(c1, "-"), strings.Split(c2, "-")
-	if len(toks1) != len(toks2) {
-		return false
-	}
-	if len(toks1) < 2 {
-		return false
-	}
-	//if toks1[0] != toks2[0] {
-	//	return false
-	//}
-
-	rhymes, err := r.Rhymes(toks1[1])
+	bucket, err := r.Bucket(lastWord)
 	if err != nil {
-		return false
+		return "", fmt.Errorf("unclassifiable")
 	}
-	if rhymes.Contains(toks2[1]) {
-		return true
-	}
-	return false
+
+	return fmt.Sprintf("%d-%s", textSyllables, bucket), nil
 }
 
 //
@@ -92,31 +74,16 @@ func (r *Rhyme) Syllables(word string) (int, error) {
 	return int(i), nil
 }
 
-func (r *Rhyme) Rhymes(word string) (*StringSet, error) {
-	ss := NewStringSet()
+func (r *Rhyme) Bucket(word string) (string, error) {
 	buf, err := exec.Command(r.bin, word).CombinedOutput()
 	if err != nil {
-		return ss, err
+		return "", err
 	}
-
-	rd := bufio.NewReader(bytes.NewBuffer(buf))
-	for {
-		line, err := rd.ReadString('\n')
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, err
-		}
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-		for _, word := range strings.Split(line, " ") {
-			ss.Add(word)
-		}
+	firstWord, err := bufio.NewReader(bytes.NewBuffer(buf)).ReadString(' ')
+	if err != nil {
+		return "", err
 	}
-	return ss, nil
+	return strings.TrimSpace(firstWord), nil
 }
 
 func Tokenize(text string) []string {

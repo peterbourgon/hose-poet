@@ -6,7 +6,7 @@ import (
 
 func TestPair(t *testing.T) {
 	rh := NewRhyme(*rhymeBin)
-	pb := NewPoetryBox(rh)
+	st := NewStore(rh)
 
 	for i, text := range []string{
 		`RT @ConnieRodarte: “@exquisitekarixo: Never did I think you'd have this huge affect on me.”`,
@@ -20,11 +20,11 @@ func TestPair(t *testing.T) {
 		}
 
 		t.Logf("%s", tweet.Text)
-		couplet, ok := pb.Feed(&tweet)
+		match, ok := st.Feed(tweet)
 		if ok {
 			t.Logf("MATCH!")
-			t.Logf("    %s", couplet.First.Text)
-			t.Logf("    %s", couplet.Second.Text)
+			t.Logf("    %s", match[0].Text)
+			t.Logf("    %s", match[1].Text)
 			t.Logf(" ")
 		} else {
 			t.Logf("no match")

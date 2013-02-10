@@ -7,6 +7,7 @@ import (
 
 var (
 	credentials = flag.String("credentials", "CREDENTIALS", "credentials cache file")
+	rhymeBin    = flag.String("rhyme.bin", "./rhyme-0.9/rhyme.bash", "location of 'rhyme.bash' script")
 )
 
 func init() {
@@ -28,9 +29,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	pb := NewPoetryBox()
+	rh := NewRhyme(*rhymeBin)
+	pb := NewPoetryBox(rh)
 	for tweet := range tweets {
-		if couplet, ok := pb.Feed(tweet); ok {
+		if couplet, ok := pb.Feed(&tweet); ok {
 			log.Printf(
 				"couplet found:\n%20s: %s\n%20s: %s\n",
 				couplet.First.User.ScreenName,

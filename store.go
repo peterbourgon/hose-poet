@@ -1,37 +1,30 @@
 package main
 
-type Classifier interface {
-	Classify(Tweet) (string, error)
-}
+import (
+	"fmt"
+)
 
-type Store struct {
-	cl Classifier
-	m  map[string]Tweet // classification: most recent Tweet
-}
+type store map[string]Tweet
 
-func NewStore(cl Classifier) *Store {
-	return &Store{
-		cl: cl,
-		m:  map[string]Tweet{},
-	}
-}
-
-func (s *Store) Feed(tweet Tweet) ([]Tweet, bool) {
-	classification, err := s.cl.Classify(tweet)
+func classify(t Tweet) (string, error) {
+	m, err := meter(t.DestupifiedText)
 	if err != nil {
-		//log.Printf("x %30d %20s -- %s", tweet.ID, err, tweet.Text)
-		return []Tweet{}, false
+		return "", err
 	}
-	//log.Printf("• %30d %20s -- %s", tweet.ID, classification, tweet.Text)
-
-	if _, ok := s.m[classification]; ok {
-		//log.Printf("• %30d %20s -- %s", tweet.ID, "--MATCH--", "")
-		match := []Tweet{s.m[classification], tweet}
-		delete(s.m, classification)
-		return match, true
+	if m > 10 {
+		return "", fmt.Errorf("too many syllables (%d)", m)
 	}
+	r, err := rhyme(t.DestupifiedText)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%d-%s", m, r), nil
+}
 
-	//log.Printf("• %30d %20s -- %s", tweet.ID, "(store)", "")
-	s.m[classification] = tweet
-	return []Tweet{}, false
+func (s store) put(key string, t Tweet) (Tweet, bool) {
+	if other, ok := s[key]; ok {
+		return other, true
+	}
+	s[key] = t
+	return Tweet{}, false
 }

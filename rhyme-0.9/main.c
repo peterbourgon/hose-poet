@@ -51,6 +51,7 @@ int main(int argc, char *argv[]) {
         printInteractiveHelp(stdout);
       } else {
         displayResult(word, flags, wordfile, rhymefile, multiplefile);
+		printf("\n");
         add_history(word);
       }
 

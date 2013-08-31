@@ -2,37 +2,32 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/mrjones/oauth"
-	"io/ioutil"
 	"log"
 	"strings"
 )
 
-type Stream struct {
+type stream struct {
 	ConsumerKey    string
 	ConsumerSecret string
 	AccessToken    string
 	AccessSecret   string
 }
 
-func NewStream(credentialsFile string) (*Stream, error) {
-	buf, err := ioutil.ReadFile(credentialsFile)
-	if err != nil {
-		return nil, err
-	}
-
-	toks := strings.Split(strings.TrimSpace(string(buf)), "\n")
+func newStream(credentials []byte) (*stream, error) {
+	toks := bytes.Split(bytes.TrimSpace(credentials), []byte{'\n'})
 	if len(toks) < 4 {
 		return nil, fmt.Errorf("invalid credentials file format")
 	}
 
-	return &Stream{
-		ConsumerKey:    toks[0],
-		ConsumerSecret: toks[1],
-		AccessToken:    toks[2],
-		AccessSecret:   toks[3],
+	return &stream{
+		ConsumerKey:    string(toks[0]),
+		ConsumerSecret: string(toks[1]),
+		AccessToken:    string(toks[2]),
+		AccessSecret:   string(toks[3]),
 	}, nil
 }
 
@@ -42,10 +37,12 @@ type Tweet struct {
 		ID         uint64 `json:"id"`
 		ScreenName string `json:"screen_name"`
 	} `json:"user"`
-	Text string `json:"text"`
+	Text            string `json:"text"`
+	DestupifiedText string
+	LastWord        string
 }
 
-func (s *Stream) Consume() (chan Tweet, error) {
+func (s *stream) consume() (chan Tweet, error) {
 	c := oauth.NewConsumer(
 		s.ConsumerKey,
 		s.ConsumerSecret,
@@ -58,7 +55,7 @@ func (s *Stream) Consume() (chan Tweet, error) {
 
 	response, err := c.Get(
 		"https://stream.twitter.com/1.1/statuses/sample.json",
-		map[string]string{},
+		map[string]string{"language": "en"},
 		&oauth.AccessToken{
 			Token:  s.AccessToken,
 			Secret: s.AccessSecret,
@@ -90,6 +87,18 @@ func (s *Stream) Consume() (chan Tweet, error) {
 				continue
 			}
 			tweet.Text = newlineRemover.Replace(tweet.Text)
+			tweet.DestupifiedText, err = destupify(tweet.Text)
+			if err != nil {
+				continue
+			}
+			words := strings.Split(tweet.DestupifiedText, " ")
+			if len(words) <= 0 {
+				continue
+			}
+			tweet.LastWord = words[len(words)-1]
+			if tweet.LastWord == "" {
+				continue
+			}
 			tweets <- tweet
 		}
 	}()

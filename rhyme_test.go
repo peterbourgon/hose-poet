@@ -4,25 +4,17 @@ import (
 	"testing"
 )
 
-func TestSyllables(t *testing.T) {
-	rh := NewRhyme(*rhymeBin)
-	for word, expected := range map[string]int{
-		"foo":           1,
-		"define":        2,
-		"observe":       2,
-		"bifurcate":     3,
-		"deliberate":    4,
-		"automatically": 5,
+func TestRhymes(t *testing.T) {
+	type wordPair struct{ a, b string }
+	for wordPair, expected := range map[wordPair]bool{
+		wordPair{"cat", "bat"}:           true,
+		wordPair{"cat", "bar"}:           false,
+		wordPair{"incredible", "edible"}: true,
+		wordPair{"slice", "mice"}:        true,
+		wordPair{"grumpy", "stump"}:      false,
 	} {
-		got, err := rh.Syllables(word)
-		if err != nil {
-			t.Errorf("%15s: %s", word, err)
-			continue
+		if got := rhymes(wordPair.a, wordPair.b); got != expected {
+			t.Errorf("%v: %v, expected %v", wordPair, got, expected)
 		}
-		if expected != got {
-			t.Errorf("%15s: expected %d, got %d", word, expected, got)
-			continue
-		}
-		t.Logf("%15s: %d OK", word, got)
 	}
 }

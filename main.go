@@ -41,11 +41,13 @@ func main() {
 		}
 
 		key := fmt.Sprintf("%d%s", syllables, tweet.LastWord)
-		log.Printf("%d => %-140s => %s", tweet.ID, tweet.DestupifiedText, key)
+		log.Printf("%-140s => %s", tweet.DestupifiedText, key)
 		if matchID, ok := fwd[key]; ok {
 			log.Println()
-			log.Printf("MATCH %d %-16s %s", matchID, con[matchID].User.ScreenName, con[matchID].DestupifiedText)
-			log.Printf("MATCH %d %-16s %s", tweet.ID, tweet.User.ScreenName, tweet.DestupifiedText)
+			log.Printf(" %s", con[matchID].DestupifiedText)
+			log.Printf(" http://twitter.com/%s/status/%d", con[matchID].User.ScreenName, con[matchID].ID)
+			log.Printf(" %s", tweet.DestupifiedText)
+			log.Printf(" http://twitter.com/%s/status/%d", tweet.User.ScreenName, tweet.ID)
 			log.Println()
 			for _, word := range rev[matchID] {
 				delete(fwd, word)

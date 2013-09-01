@@ -26,23 +26,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	func() {
-		for _, s := range []string{
-			"i want u to stay",
-			"thats wat she said hah",
-		} {
-			syll, err := syllablez(s)
-			if err != nil {
-				panic(err)
-			}
-			rhym, err := rhymez(strings.Split(s, " ")[4])
-			if err != nil {
-				panic(err)
-			}
-			log.Printf("%s: %d %v", s, syll, rhym)
-		}
-	}()
-
 	tweets, err := stream.consume()
 	if err != nil {
 		log.Fatal(err)

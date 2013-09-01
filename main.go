@@ -83,5 +83,6 @@ func main() {
 		}
 		rev[tweet.ID] = candidates
 		con[tweet.ID] = tweet
+
 	}
 }
